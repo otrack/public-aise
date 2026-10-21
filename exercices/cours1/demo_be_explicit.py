@@ -17,16 +17,23 @@ CHECKS = {
 }
 
 for name, prompt in [("PROMPT VAGUE", VAGUE_PROMPT), ("PROMPT EXPLICITE", EXPLICIT_PROMPT)]:
-    response = chat(
+    stream = chat(
         model=MODEL,
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
         ],
         options={"temperature": 0},
+        stream=True,
     )
-    text = response.message.content.strip()
-    print(f"=== {name} ===\n{prompt}\n--- Réponse du modèle ---\n{text}\n")
+    print(f"=== {name} ===\n{prompt}\n--- Réponse du modèle ---")
+    # the answer is printed as it is generated
+    text = ""
+    for chunk in stream:
+        print(chunk.message.content, end="", flush=True)
+        text += chunk.message.content
+    text = text.strip()
+    print("\n")
     print("--- Contraintes respectées ---")
     for label, check in CHECKS.items():
         print(f"[{'x' if check(text) else ' '}] {label}")
